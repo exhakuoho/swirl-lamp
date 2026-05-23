@@ -1,0 +1,1817 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swirl Lamp — 深夜回家，還有一盞為你而開的燈</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Noto+Serif+TC:wght@300;400&family=Montserrat:wght@200;300;400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <style>
+        /* ========================= */
+        /*  CSS Custom Properties    */
+        /* ========================= */
+        :root {
+            --warm-light:     #F6DFC0;
+            --amber-glow:     #EBC08B;
+            --cream-white:    #FFF1D9;
+            --honey-beige:    #C89A67;
+            --walnut:         #6E4327;
+            --deep-caramel:   #7A4E2D;
+            --espresso:       #2B1A14;
+            --dark-cocoa:     #3A241B;
+            --warm-black:     #140D0A;
+            --champagne-gold: #D8B48A;
+            --luxury-cream:   #F3E6D6;
+        }
+
+        /* ========================= */
+        /*  Reset & Base             */
+        /* ========================= */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; font-size: 16px; }
+        body {
+            background-color: var(--warm-black);
+            color: var(--warm-light);
+            font-family: 'Montserrat', 'Noto Serif TC', sans-serif;
+            font-weight: 300;
+            line-height: 1.8;
+            overflow-x: hidden;
+        }
+        a { text-decoration: none; }
+        img { max-width: 100%; display: block; }
+
+        /* ========================= */
+        /*  Scroll Animations        */
+        /* ========================= */
+        .fade-up {
+            opacity: 0;
+            transform: translateY(48px);
+            transition: opacity 1s cubic-bezier(.22,.61,.36,1), transform 1s cubic-bezier(.22,.61,.36,1);
+        }
+        .fade-up.visible { opacity: 1; transform: translateY(0); }
+
+        .fade-in {
+            opacity: 0;
+            transition: opacity 1.4s ease;
+        }
+        .fade-in.visible { opacity: 1; }
+
+        .stagger > * {
+            opacity: 0;
+            transform: translateY(36px);
+            transition: opacity 0.9s cubic-bezier(.22,.61,.36,1), transform 0.9s cubic-bezier(.22,.61,.36,1);
+        }
+        .stagger.visible > *:nth-child(1) { opacity:1; transform:none; transition-delay:.05s; }
+        .stagger.visible > *:nth-child(2) { opacity:1; transform:none; transition-delay:.18s; }
+        .stagger.visible > *:nth-child(3) { opacity:1; transform:none; transition-delay:.31s; }
+        .stagger.visible > *:nth-child(4) { opacity:1; transform:none; transition-delay:.44s; }
+        .stagger.visible > *:nth-child(5) { opacity:1; transform:none; transition-delay:.57s; }
+        .stagger.visible > *:nth-child(6) { opacity:1; transform:none; transition-delay:.70s; }
+
+        /* ========================= */
+        /*  Navigation               */
+        /* ========================= */
+        .nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 999;
+            padding: 32px 72px;
+            display: flex; align-items: center; justify-content: space-between;
+            transition: background 0.5s ease, padding 0.4s ease;
+        }
+        .nav.scrolled {
+            background: rgba(20,13,10,0.92);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            padding: 22px 72px;
+            border-bottom: 1px solid rgba(216,180,138,0.07);
+        }
+        .nav-logo {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 19px; font-weight: 400;
+            letter-spacing: 7px; text-transform: uppercase;
+            color: var(--champagne-gold);
+        }
+        .nav-links { display: flex; gap: 48px; list-style: none; }
+        .nav-links a {
+            color: var(--warm-light); font-size: 10px;
+            letter-spacing: 3px; text-transform: uppercase;
+            opacity: 0.6; transition: opacity 0.3s;
+        }
+        .nav-links a:hover { opacity: 1; }
+        .nav-reserve {
+            padding: 11px 30px;
+            border: 1px solid rgba(216,180,138,0.35);
+            color: var(--champagne-gold);
+            font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
+            transition: all 0.35s ease; cursor: pointer;
+        }
+        .nav-reserve:hover {
+            background: var(--champagne-gold);
+            color: var(--warm-black);
+            border-color: var(--champagne-gold);
+        }
+
+        /* ========================= */
+        /*  Hero                     */
+        /* ========================= */
+        #hero {
+            min-height: 100vh;
+            display: grid; grid-template-columns: 1fr 1fr;
+            align-items: center;
+            padding: 0 80px;
+            position: relative; overflow: hidden;
+        }
+        /* Ambient background glows */
+        .hero-ambient {
+            position: absolute; inset: 0; pointer-events: none;
+        }
+        .hero-ambient::before {
+            content: '';
+            position: absolute; right: 0; top: 50%;
+            transform: translateY(-50%);
+            width: 700px; height: 700px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(235,192,139,0.1) 0%, rgba(122,78,45,0.05) 40%, transparent 70%);
+            animation: ambientBreathe 5s ease-in-out infinite;
+        }
+        .hero-ambient::after {
+            content: '';
+            position: absolute; left: 5%; bottom: 5%;
+            width: 400px; height: 400px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(110,67,39,0.12) 0%, transparent 65%);
+            animation: ambientBreathe 7s ease-in-out infinite 1s;
+        }
+        @keyframes ambientBreathe {
+            0%,100% { opacity:0.7; transform: translateY(-50%) scale(1); }
+            50%      { opacity:1;   transform: translateY(-50%) scale(1.07); }
+        }
+
+        /* Hero text */
+        .hero-content { position: relative; z-index: 2; padding: 120px 0 80px; }
+
+        .hero-eyebrow {
+            display: flex; align-items: center; gap: 18px;
+            font-size: 10px; letter-spacing: 5px; text-transform: uppercase;
+            color: var(--champagne-gold); opacity: 0.7; margin-bottom: 36px;
+        }
+        .hero-eyebrow::before {
+            content: ''; display: block;
+            width: 36px; height: 1px;
+            background: var(--champagne-gold); opacity: 0.5;
+        }
+        .hero-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(68px, 8.5vw, 108px);
+            font-weight: 300; line-height: 1.02; letter-spacing: -1px;
+            color: var(--luxury-cream); margin-bottom: 30px;
+        }
+        .hero-title em { font-style: italic; color: var(--amber-glow); }
+
+        .hero-subtitle {
+            font-family: 'Noto Serif TC', serif;
+            font-size: clamp(15px, 1.6vw, 19px);
+            font-weight: 300; color: var(--amber-glow);
+            line-height: 1.95; margin-bottom: 18px;
+        }
+        .hero-desc {
+            font-size: 12.5px; color: var(--warm-light);
+            opacity: 0.5; max-width: 350px; line-height: 2.3;
+            letter-spacing: 0.4px; margin-bottom: 56px;
+        }
+        .hero-buttons { display: flex; gap: 20px; flex-wrap: wrap; }
+
+        /* Buttons */
+        .btn-primary {
+            display: inline-block; padding: 16px 44px;
+            background: var(--champagne-gold); color: var(--warm-black);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 10px; font-weight: 500; letter-spacing: 4px; text-transform: uppercase;
+            border: none; cursor: pointer;
+            transition: background 0.4s ease, transform 0.3s ease;
+        }
+        .btn-primary:hover { background: var(--cream-white); transform: translateY(-2px); }
+
+        .btn-outline {
+            display: inline-block; padding: 16px 44px;
+            background: transparent; color: var(--warm-light);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 10px; font-weight: 300; letter-spacing: 4px; text-transform: uppercase;
+            border: 1px solid rgba(246,223,192,0.22);
+            transition: all 0.4s ease; cursor: pointer;
+        }
+        .btn-outline:hover { border-color: var(--champagne-gold); color: var(--champagne-gold); }
+
+        /* Hero photo area */
+        .hero-lamp-area {
+            position: relative; z-index: 2;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .hero-photo {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            object-position: center center;
+            display: block;
+        }
+        .hero-photo-fade {
+            position: absolute; inset: 0; pointer-events: none;
+            background:
+                linear-gradient(to right, var(--warm-black) 0%, rgba(20,13,10,0.55) 28%, transparent 52%),
+                linear-gradient(to top, var(--warm-black) 0%, transparent 22%),
+                linear-gradient(to bottom, rgba(20,13,10,0.6) 0%, transparent 14%);
+        }
+        .lamp-wrap { position: relative; width: 400px; height: 520px; }
+
+        /* Glow rings */
+        .glow-ring {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -55%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .glow-ring-1 {
+            width: 300px; height: 300px;
+            background: radial-gradient(circle, rgba(246,223,192,0.16) 0%, rgba(235,192,139,0.07) 40%, transparent 70%);
+            animation: glowPulse 3.5s ease-in-out infinite;
+        }
+        .glow-ring-2 {
+            width: 460px; height: 460px;
+            background: radial-gradient(circle, rgba(235,192,139,0.06) 0%, transparent 60%);
+            animation: glowPulse 3.5s ease-in-out infinite 0.7s;
+        }
+        .glow-ring-3 {
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(110,67,39,0.05) 0%, transparent 55%);
+            animation: glowPulse 5s ease-in-out infinite 1.2s;
+        }
+        @keyframes glowPulse {
+            0%,100% { opacity:0.65; transform:translate(-50%,-55%) scale(1); }
+            50%      { opacity:1;   transform:translate(-50%,-55%) scale(1.09); }
+        }
+
+        /* SVG Lamp */
+        .lamp-svg {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 340px; height: 500px;
+            filter: drop-shadow(0 0 40px rgba(235,192,139,0.15));
+            animation: lampFloat 6s ease-in-out infinite;
+        }
+        @keyframes lampFloat {
+            0%,100% { transform: translate(-50%,-50%) translateY(0); }
+            50%      { transform: translate(-50%,-50%) translateY(-12px); }
+        }
+
+        /* Particles */
+        .particle {
+            position: absolute; border-radius: 50%;
+            background: var(--amber-glow); opacity: 0;
+            animation: floatUp 6s ease-in-out infinite;
+        }
+        @keyframes floatUp {
+            0%   { opacity:0; transform: translateY(0) scale(0); }
+            15%  { opacity:0.55; transform: translateY(-15px) scale(1); }
+            80%  { opacity:0.15; transform: translateY(-90px) scale(0.4); }
+            100% { opacity:0; transform: translateY(-130px) scale(0); }
+        }
+
+        /* Scroll cue */
+        .scroll-cue {
+            position: absolute; bottom: 44px; left: 80px;
+            display: flex; align-items: flex-start; gap: 14px; opacity: 0.35;
+        }
+        .scroll-cue-line {
+            width: 1px; height: 56px;
+            background: linear-gradient(to bottom, var(--champagne-gold), transparent);
+            animation: scrollCue 2.2s ease-in-out infinite;
+        }
+        .scroll-cue-text {
+            font-size: 9px; letter-spacing: 4px; text-transform: uppercase;
+            padding-top: 4px;
+        }
+        @keyframes scrollCue {
+            0%,100% { opacity:0.4; transform: scaleY(1); }
+            50%      { opacity:1;   transform: scaleY(1.15) translateY(4px); }
+        }
+
+        /* ========================= */
+        /*  Shared Section Styles    */
+        /* ========================= */
+        .section-label {
+            display: flex; align-items: center; gap: 18px;
+            font-size: 9px; letter-spacing: 5px; text-transform: uppercase;
+            color: var(--champagne-gold); opacity: 0.6; margin-bottom: 22px;
+        }
+        .section-label::before {
+            content: ''; display: block; width: 28px; height: 1px;
+            background: var(--champagne-gold); opacity: 0.5; flex-shrink: 0;
+        }
+        .section-divider {
+            width: 1px; height: 1px; overflow: hidden;
+        }
+        .h-rule {
+            border: none; border-top: 1px solid rgba(216,180,138,0.1);
+        }
+
+        /* ========================= */
+        /*  Philosophy               */
+        /* ========================= */
+        #philosophy {
+            padding: 168px 80px;
+            background: linear-gradient(to bottom, var(--warm-black), var(--espresso) 50%, var(--warm-black));
+            position: relative;
+        }
+        #philosophy::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(216,180,138,0.18), transparent);
+        }
+        .philosophy-inner {
+            max-width: 920px; margin: 0 auto; text-align: center;
+        }
+        .philosophy-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(38px, 5vw, 62px);
+            font-weight: 300; line-height: 1.28; color: var(--luxury-cream);
+            margin-bottom: 52px;
+        }
+        .philosophy-title em { font-style: italic; color: var(--amber-glow); }
+        .philosophy-rule {
+            width: 64px; height: 1px; margin: 0 auto 52px;
+            background: linear-gradient(to right, transparent, var(--champagne-gold), transparent);
+        }
+        .philosophy-body {
+            font-family: 'Noto Serif TC', serif;
+            font-size: 16px; font-weight: 300; color: var(--warm-light);
+            opacity: 0.7; line-height: 2.8; max-width: 660px; margin: 0 auto 80px;
+        }
+        .pillars {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 0;
+            margin-top: 80px; border-top: 1px solid rgba(216,180,138,0.1);
+        }
+        .pillar {
+            padding: 52px 40px; text-align: left;
+            border-right: 1px solid rgba(216,180,138,0.1);
+        }
+        .pillar:last-child { border-right: none; }
+        .pillar-num {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 72px; font-weight: 300; line-height: 1;
+            color: var(--champagne-gold); opacity: 0.18; margin-bottom: 20px;
+        }
+        .pillar-heading {
+            font-family: 'Noto Serif TC', serif;
+            font-size: 15px; color: var(--champagne-gold);
+            margin-bottom: 14px; letter-spacing: 0.5px;
+        }
+        .pillar-text {
+            font-size: 12.5px; color: var(--warm-light);
+            opacity: 0.5; line-height: 2.1;
+        }
+
+        /* ========================= */
+        /*  Lighting Modes           */
+        /* ========================= */
+        #modes { padding: 128px 0; position: relative; }
+        #modes::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(216,180,138,0.15), transparent);
+        }
+        .modes-head { padding: 0 80px; margin-bottom: 72px; }
+        .modes-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(34px, 4.5vw, 56px);
+            font-weight: 300; color: var(--luxury-cream);
+            max-width: 480px; line-height: 1.25;
+        }
+        .modes-sub {
+            font-size: 12px; color: var(--warm-light); opacity: 0.45;
+            margin-top: 18px; letter-spacing: 0.3px;
+        }
+        .modes-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px;
+        }
+        .mode-card {
+            position: relative; min-height: 290px;
+            padding: 48px 38px; display: flex;
+            flex-direction: column; justify-content: flex-end;
+            cursor: pointer; overflow: hidden;
+            transition: transform 0.5s cubic-bezier(.22,.61,.36,1);
+        }
+        .mode-card:hover { transform: translateY(-6px); }
+
+        /* Card backgrounds */
+        .m-home  { background: linear-gradient(150deg, #1E1008 0%, #2C1810 60%, #180E08 100%); }
+        .m-relax { background: linear-gradient(150deg, #1A0E08 0%, #271410 60%, #160B06 100%); }
+        .m-read  { background: linear-gradient(150deg, #1C1108 0%, #2E1A0C 60%, #1A0F08 100%); }
+        .m-sleep { background: linear-gradient(150deg, #160908 0%, #1E0E0C 60%, #130808 100%); }
+        .m-night { background: linear-gradient(150deg, #0F0806 0%, #180C08 60%, #0D0706 100%); }
+        .m-party { background: linear-gradient(150deg, #1C1008 0%, #2E1A0C 60%, #1A0E08 100%); }
+
+        /* Glow orb per card */
+        .mode-orb {
+            position: absolute; top: 28px; right: 28px;
+            border-radius: 50%; transition: transform 0.5s ease;
+        }
+        .mode-card:hover .mode-orb { transform: scale(1.15); }
+
+        .m-home  .mode-orb { width:68px; height:68px; background:radial-gradient(circle,#FFF1D9 0%,#EBC08B 45%,transparent 100%); box-shadow:0 0 36px rgba(235,192,139,0.5),0 0 70px rgba(235,192,139,0.18); animation:orbPulse 2.8s ease-in-out infinite; }
+        .m-relax .mode-orb { width:44px; height:44px; background:radial-gradient(circle,#EBC08B 0%,#C89A67 55%,transparent 100%); box-shadow:0 0 22px rgba(200,154,103,0.45); animation:orbPulse 3.5s ease-in-out infinite; }
+        .m-read  .mode-orb { width:76px; height:76px; background:radial-gradient(circle,#FFF8EC 0%,#F6DFC0 40%,transparent 100%); box-shadow:0 0 40px rgba(246,223,192,0.55),0 0 80px rgba(246,223,192,0.18); animation:orbPulse 3s ease-in-out infinite; }
+        .m-sleep .mode-orb { width:32px; height:32px; background:radial-gradient(circle,#C89A67 0%,#7A4E2D 65%,transparent 100%); box-shadow:0 0 16px rgba(122,78,45,0.35); animation:orbPulse 4.5s ease-in-out infinite; }
+        .m-night .mode-orb { width:20px; height:20px; background:radial-gradient(circle,#D8B48A 0%,#6E4327 70%,transparent 100%); box-shadow:0 0 10px rgba(110,67,39,0.3); animation:orbPulse 6s ease-in-out infinite; }
+        .m-party .mode-orb { width:60px; height:60px; background:radial-gradient(circle,#F6DFC0 0%,#D8B48A 35%,#C89A67 65%,transparent 100%); box-shadow:0 0 30px rgba(216,180,138,0.45),0 0 60px rgba(200,154,103,0.2); animation:partyOrb 1.8s ease-in-out infinite; }
+
+        @keyframes orbPulse {
+            0%,100% { opacity:0.8; } 50% { opacity:1; }
+        }
+        @keyframes partyOrb {
+            0%,100% { opacity:0.75; transform:scale(1); }
+            50%      { opacity:1; transform:scale(1.12) rotate(12deg); }
+        }
+
+        .mode-name {
+            font-family: 'Noto Serif TC', serif;
+            font-size: 18px; color: var(--luxury-cream); margin-bottom: 6px;
+        }
+        .mode-en {
+            font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
+            color: var(--champagne-gold); opacity: 0.55; margin-bottom: 18px;
+        }
+        .mode-desc {
+            font-size: 12px; color: var(--warm-light);
+            opacity: 0.48; line-height: 2;
+        }
+        .mode-bar-wrap {
+            display: flex; align-items: center; gap: 10px; margin-top: 22px;
+        }
+        .mode-bar {
+            flex: 1; height: 2px; border-radius: 1px;
+            background: rgba(246,223,192,0.08); overflow: hidden;
+        }
+        .mode-bar-fill {
+            height: 100%; border-radius: 1px;
+            background: linear-gradient(to right, var(--walnut), var(--champagne-gold));
+        }
+        .mode-kelvin {
+            font-size: 9px; letter-spacing: 2px;
+            color: var(--champagne-gold); opacity: 0.45; white-space: nowrap;
+        }
+
+        /* ========================= */
+        /*  Matter                   */
+        /* ========================= */
+        #matter {
+            padding: 168px 80px; position: relative;
+        }
+        #matter::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(216,180,138,0.15), transparent);
+        }
+        .matter-layout {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 120px; align-items: center;
+        }
+        .matter-heading {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(34px, 4.5vw, 56px);
+            font-weight: 300; color: var(--luxury-cream);
+            line-height: 1.28; margin-bottom: 28px;
+        }
+        .matter-body {
+            font-size: 13px; color: var(--warm-light);
+            opacity: 0.55; line-height: 2.6; margin-bottom: 48px;
+        }
+        .matter-badges {
+            display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 52px;
+        }
+        .matter-badge {
+            padding: 9px 22px;
+            border: 1px solid rgba(216,180,138,0.2);
+            font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+            color: var(--champagne-gold); opacity: 0.7;
+            transition: all 0.3s ease;
+        }
+        .matter-badge:hover { opacity:1; border-color: var(--champagne-gold); }
+        .matter-list {
+            list-style: none;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 14px 24px;
+        }
+        .matter-list li {
+            display: flex; align-items: flex-start; gap: 12px;
+            font-size: 12.5px; color: var(--warm-light); opacity: 0.6; line-height: 1.9;
+        }
+        .matter-list li::before {
+            content: '—'; color: var(--champagne-gold);
+            opacity: 0.5; flex-shrink: 0;
+        }
+
+        /* Matter visual – animated rings */
+        .matter-visual {
+            position: relative; height: 500px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .m-ring {
+            position: absolute; border-radius: 50%;
+            border: 1px solid rgba(216,180,138,0.12);
+        }
+        .m-ring-1 { width:320px; height:320px; animation: spin 22s linear infinite; }
+        .m-ring-2 { width:220px; height:220px; animation: spin 16s linear infinite reverse; border-color:rgba(216,180,138,0.17); }
+        .m-ring-3 { width:420px; height:420px; animation: spin 34s linear infinite; border-color:rgba(216,180,138,0.06); }
+        @keyframes spin { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
+
+        .m-ring-1::before,.m-ring-1::after,
+        .m-ring-2::before,.m-ring-2::after {
+            content: ''; position: absolute;
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--champagne-gold); opacity: 0.4;
+        }
+        .m-ring-1::before { top:-4px; left:50%; transform:translateX(-50%); }
+        .m-ring-1::after  { bottom:-4px; left:50%; transform:translateX(-50%); }
+        .m-ring-2::before { top:-4px; left:50%; transform:translateX(-50%); }
+        .m-ring-2::after  { bottom:-4px; left:50%; transform:translateX(-50%); }
+
+        .m-center {
+            width: 88px; height: 88px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(246,223,192,0.18) 0%, rgba(235,192,139,0.08) 50%, transparent 100%);
+            box-shadow: 0 0 48px rgba(235,192,139,0.12);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 2;
+        }
+        .m-center-text {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 11px; letter-spacing: 1.5px;
+            color: var(--champagne-gold); text-align: center; line-height: 1.5;
+        }
+
+        /* ========================= */
+        /*  Design / Art             */
+        /* ========================= */
+        #design {
+            padding: 168px 80px;
+            background: linear-gradient(to bottom, var(--warm-black), var(--dark-cocoa) 50%, var(--warm-black));
+            position: relative; text-align: center;
+        }
+        #design::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(216,180,138,0.2), transparent);
+        }
+        .design-inner { max-width: 1100px; margin: 0 auto; }
+        .design-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(38px, 5vw, 66px);
+            font-weight: 300; color: var(--luxury-cream);
+            line-height: 1.22; margin: 24px auto 72px; max-width: 680px;
+        }
+        .design-title em { font-style: italic; color: var(--amber-glow); }
+
+        /* Decorative lamp showcase */
+        .design-showcase {
+            position: relative; height: 280px;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 80px;
+        }
+        .design-glow {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 380px; height: 280px;
+            background: radial-gradient(ellipse, rgba(235,192,139,0.12) 0%, transparent 60%);
+            border-radius: 50%;
+            animation: glowPulse 4s ease-in-out infinite;
+        }
+        @keyframes photoFloat {
+            0%,100% { transform: translateY(0); }
+            50%      { transform: translateY(-12px); }
+        }
+        .design-product-photo {
+            position: relative; z-index: 2;
+            height: 260px; width: auto;
+            object-fit: contain;
+            border-radius: 2px;
+            animation: photoFloat 6s ease-in-out infinite 1s;
+            filter: drop-shadow(0 20px 60px rgba(235,192,139,0.2));
+        }
+
+        .design-feats {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px;
+        }
+        .design-feat {
+            padding: 52px 36px; text-align: left;
+            background: rgba(43,26,20,0.35);
+            border-top: 1px solid rgba(216,180,138,0.1);
+            transition: background 0.4s ease;
+        }
+        .design-feat:hover { background: rgba(58,36,27,0.5); }
+        .design-feat-icon {
+            width: 36px; height: 36px; margin-bottom: 28px; opacity: 0.55;
+        }
+        .design-feat-head {
+            font-family: 'Noto Serif TC', serif;
+            font-size: 15px; color: var(--champagne-gold); margin-bottom: 14px;
+        }
+        .design-feat-body {
+            font-size: 12px; color: var(--warm-light); opacity: 0.48; line-height: 2.1;
+        }
+
+        /* ========================= */
+        /*  Scenarios                */
+        /* ========================= */
+        #scenarios { padding: 128px 80px; position: relative; }
+        #scenarios::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(216,180,138,0.15), transparent);
+        }
+        .scenarios-head { text-align: center; margin-bottom: 72px; }
+        .scenarios-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(34px, 4.5vw, 56px);
+            font-weight: 300; color: var(--luxury-cream);
+            margin-top: 16px; line-height: 1.3;
+        }
+        .scenarios-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
+        }
+        .scene-card {
+            position: relative; height: 340px;
+            overflow: hidden; cursor: pointer;
+        }
+        .scene-bg {
+            position: absolute; inset: 0;
+            transition: transform 0.7s cubic-bezier(.22,.61,.36,1);
+        }
+        .scene-card:hover .scene-bg { transform: scale(1.06); }
+
+        /* Scene cards — real photo backgrounds */
+        .scene-bg {
+            background-size: cover;
+            background-position: center;
+        }
+        /* Subtle dark overlay so text stays readable */
+        .scene-bg::after {
+            content: ''; position: absolute; inset: 0;
+            background: rgba(20,13,10,0.18);
+            transition: background 0.5s ease;
+        }
+        .scene-card:hover .scene-bg::after {
+            background: rgba(20,13,10,0.04);
+        }
+
+        /* Small lamp silhouette hint in each card */
+        .scene-lamp {
+            position: absolute; top: 28px; right: 28px;
+            width: 40px; height: 60px; opacity: 0.3;
+            transition: opacity 0.4s ease;
+        }
+        .scene-card:hover .scene-lamp { opacity: 0.5; }
+
+        .scene-info {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            padding: 32px 28px;
+            background: linear-gradient(to top, rgba(20,13,10,0.92) 0%, transparent 100%);
+        }
+        .scene-name {
+            font-family: 'Noto Serif TC', serif;
+            font-size: 17px; color: var(--luxury-cream); margin-bottom: 6px;
+        }
+        .scene-en {
+            font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
+            color: var(--champagne-gold); opacity: 0.55;
+        }
+
+        /* ========================= */
+        /*  CTA                      */
+        /* ========================= */
+        #cta {
+            padding: 200px 80px;
+            text-align: center; position: relative; overflow: hidden;
+        }
+        #cta::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(216,180,138,0.2), transparent);
+        }
+        .cta-glow {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 700px; height: 500px; border-radius: 50%;
+            background: radial-gradient(ellipse, rgba(235,192,139,0.06) 0%, transparent 60%);
+            pointer-events: none;
+            animation: glowPulse 5s ease-in-out infinite;
+        }
+        .cta-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(40px, 5.5vw, 72px);
+            font-weight: 300; color: var(--luxury-cream);
+            line-height: 1.25; margin-top: 24px; margin-bottom: 52px;
+            position: relative; z-index: 1;
+        }
+        .cta-title em { font-style: italic; color: var(--amber-glow); }
+        .cta-desc {
+            font-size: 13px; color: var(--warm-light);
+            opacity: 0.48; line-height: 2.4; max-width: 440px;
+            margin: 0 auto 68px; position: relative; z-index: 1;
+        }
+        .cta-btns {
+            display: flex; gap: 20px; justify-content: center;
+            flex-wrap: wrap; position: relative; z-index: 1;
+        }
+
+        /* ========================= */
+        /*  Footer                   */
+        /* ========================= */
+        footer {
+            padding: 52px 80px;
+            border-top: 1px solid rgba(216,180,138,0.09);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .footer-brand {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 17px; font-weight: 400;
+            letter-spacing: 6px; text-transform: uppercase;
+            color: var(--champagne-gold); opacity: 0.65;
+        }
+        .footer-copy {
+            font-size: 10px; color: var(--warm-light);
+            opacity: 0.28; letter-spacing: 2px;
+        }
+        .footer-links { display: flex; gap: 32px; list-style: none; }
+        .footer-links a {
+            font-size: 10px; color: var(--warm-light);
+            opacity: 0.3; letter-spacing: 2px; text-transform: uppercase;
+            transition: opacity 0.3s;
+        }
+        .footer-links a:hover { opacity: 0.7; }
+
+        /* ========================= */
+        /*  Responsive               */
+        /* ========================= */
+        @media (max-width: 1100px) {
+            #hero { padding: 0 48px; }
+            .matter-layout { gap: 72px; }
+            .design-feats { grid-template-columns: repeat(2,1fr); }
+            nav, #philosophy, #matter, #design, #scenarios, #cta, footer {
+                padding-left: 48px; padding-right: 48px;
+            }
+            .modes-head { padding: 0 48px; }
+        }
+
+        @media (max-width: 900px) {
+            #hero {
+                grid-template-columns: 1fr;
+                padding: 0 40px; text-align: center;
+            }
+            .hero-content { padding-top: 136px; padding-bottom: 60px; }
+            .hero-eyebrow { justify-content: center; }
+            .hero-desc { margin-left: auto; margin-right: auto; }
+            .hero-buttons { justify-content: center; }
+            .hero-lamp-area { display: none; }
+            .scroll-cue { left: 40px; }
+
+            .pillars { grid-template-columns: 1fr; }
+            .pillar { border-right: none; border-bottom: 1px solid rgba(216,180,138,0.1); }
+            .pillar:last-child { border-bottom: none; }
+
+            .modes-grid { grid-template-columns: repeat(2,1fr); }
+            .matter-layout { grid-template-columns: 1fr; gap: 64px; }
+            .matter-visual { display: none; }
+            .scenarios-grid { grid-template-columns: repeat(2,1fr); }
+
+            nav, #philosophy, #matter, #design, #scenarios, #cta, footer {
+                padding-left: 40px; padding-right: 40px;
+            }
+            .modes-head { padding: 0 40px; }
+        }
+
+        @media (max-width: 600px) {
+            .nav { padding: 20px 24px; }
+            .nav.scrolled { padding: 16px 24px; }
+            .nav-links { display: none; }
+
+            #hero { padding: 0 24px; }
+            .scroll-cue { left: 24px; }
+
+            .modes-grid { grid-template-columns: 1fr; }
+            .design-feats { grid-template-columns: 1fr; }
+            .scenarios-grid { grid-template-columns: 1fr; }
+            .scene-card { height: 260px; }
+
+            .matter-list { grid-template-columns: 1fr; }
+
+            footer {
+                flex-direction: column; gap: 28px; text-align: center;
+                padding-left: 24px; padding-right: 24px;
+            }
+            .footer-links { gap: 24px; }
+
+            nav, #philosophy, #matter, #design, #scenarios, #cta {
+                padding-left: 24px; padding-right: 24px;
+            }
+            .modes-head { padding: 0 24px; }
+
+            .cta-btns { flex-direction: column; align-items: center; }
+        }
+
+        /* ========================= */
+        /*  Instagram Section        */
+        /* ========================= */
+        #instagram {
+            padding: 120px 80px;
+            position: relative;
+            border-top: 1px solid rgba(216,180,138,0.1);
+        }
+
+        .ig-inner {
+            max-width: 960px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 80px;
+            align-items: center;
+        }
+
+        .ig-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(30px, 4vw, 48px);
+            font-weight: 300;
+            color: var(--luxury-cream);
+            line-height: 1.3;
+            margin-bottom: 20px;
+        }
+
+        .ig-desc {
+            font-size: 13px;
+            color: var(--warm-light);
+            opacity: 0.5;
+            line-height: 2.3;
+            margin-bottom: 40px;
+        }
+
+        .ig-handle-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 14px;
+            color: var(--champagne-gold);
+            font-size: 13px;
+            letter-spacing: 2px;
+            transition: all 0.35s ease;
+            text-decoration: none;
+        }
+        .ig-handle-link:hover { opacity: 0.75; gap: 20px; }
+
+        .ig-icon {
+            display: flex;
+            align-items: center;
+            color: var(--champagne-gold);
+            opacity: 0.8;
+        }
+
+        .ig-handle-text {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 400;
+            letter-spacing: 3px;
+        }
+
+        .ig-arrow {
+            font-size: 16px;
+            transition: transform 0.35s ease;
+        }
+        .ig-handle-link:hover .ig-arrow { transform: translateX(6px); }
+
+        /* QR code column */
+        .ig-qr-col {
+            text-align: center;
+        }
+
+        .ig-qr-wrap {
+            position: relative;
+            width: 180px;
+            height: 180px;
+            border: 1px solid rgba(216,180,138,0.15);
+            padding: 16px;
+            background: rgba(58,36,27,0.3);
+            overflow: hidden;
+        }
+
+        .ig-qr-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            border-radius: 4px;
+            /* QR 碼白底，用 mix-blend-mode 自然融入深色背景 */
+            mix-blend-mode: luminosity;
+            opacity: 0.85;
+            transition: opacity 0.3s ease;
+        }
+        .ig-qr-wrap:hover .ig-qr-img {
+            opacity: 1;
+            mix-blend-mode: normal;
+        }
+
+        /* Fallback when QR image is missing */
+        .ig-qr-fallback {
+            display: none;
+            position: absolute;
+            inset: 0;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            color: var(--warm-light);
+        }
+        .ig-qr-fallback p {
+            font-size: 9px;
+            letter-spacing: 1px;
+            opacity: 0.3;
+            line-height: 1.8;
+        }
+        .ig-qr-wrap.qr-missing .ig-qr-img { display: none; }
+        .ig-qr-wrap.qr-missing .ig-qr-fallback { display: flex; }
+
+        .ig-qr-label {
+            font-size: 9px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--champagne-gold);
+            opacity: 0.4;
+            margin-top: 14px;
+        }
+
+        @media (max-width: 760px) {
+            #instagram { padding: 80px 40px; }
+            .ig-inner {
+                grid-template-columns: 1fr;
+                gap: 48px;
+                text-align: center;
+            }
+            .ig-handle-link { justify-content: center; }
+            .ig-qr-col { display: flex; flex-direction: column; align-items: center; }
+        }
+
+        @media (max-width: 600px) {
+            #instagram { padding: 72px 24px; }
+        }
+
+        /* Reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* ========================= */
+        /*  Reservation Modal        */
+        /* ========================= */
+        .modal-overlay {
+            position: fixed; inset: 0; z-index: 9999;
+            background: rgba(20,13,10,0.9);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.45s ease;
+            display: flex; align-items: center; justify-content: center;
+            padding: 24px;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+
+        .modal-card {
+            background: var(--dark-cocoa);
+            border: 1px solid rgba(216,180,138,0.18);
+            max-width: 600px; width: 100%;
+            padding: 64px 60px;
+            transform: translateY(40px);
+            transition: transform 0.55s cubic-bezier(.22,.61,.36,1);
+            position: relative;
+            max-height: 92vh; overflow-y: auto;
+        }
+        .modal-overlay.active .modal-card { transform: translateY(0); }
+
+        .modal-card::-webkit-scrollbar { width: 4px; }
+        .modal-card::-webkit-scrollbar-track { background: transparent; }
+        .modal-card::-webkit-scrollbar-thumb { background: rgba(216,180,138,0.2); border-radius: 2px; }
+
+        .modal-close {
+            position: absolute; top: 28px; right: 36px;
+            background: none; border: none;
+            color: var(--warm-light); opacity: 0.35;
+            font-size: 20px; cursor: pointer;
+            transition: opacity 0.3s; font-weight: 200;
+            font-family: 'Montserrat', sans-serif;
+            padding: 4px 8px; line-height: 1;
+        }
+        .modal-close:hover { opacity: 1; }
+
+        .modal-eyebrow {
+            font-size: 9px; letter-spacing: 5px; text-transform: uppercase;
+            color: var(--champagne-gold); opacity: 0.65; margin-bottom: 12px;
+            display: flex; align-items: center; gap: 14px;
+        }
+        .modal-eyebrow::before {
+            content: ''; display: block; width: 24px; height: 1px;
+            background: var(--champagne-gold); opacity: 0.5;
+        }
+        .modal-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 36px; font-weight: 300; color: var(--luxury-cream);
+            line-height: 1.25; margin-bottom: 12px;
+        }
+        .modal-desc {
+            font-size: 12.5px; color: var(--warm-light); opacity: 0.45;
+            line-height: 2.2; margin-bottom: 48px;
+        }
+        .modal-rule {
+            width: 48px; height: 1px; margin-bottom: 48px;
+            background: linear-gradient(to right, var(--champagne-gold), transparent);
+        }
+
+        /* Form fields */
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px; }
+        .form-group { position: relative; margin-bottom: 36px; }
+        .form-label {
+            display: block; font-size: 9px; letter-spacing: 3px; text-transform: uppercase;
+            color: var(--champagne-gold); opacity: 0.6; margin-bottom: 10px;
+        }
+        .form-input {
+            width: 100%; background: transparent;
+            border: none; border-bottom: 1px solid rgba(246,223,192,0.18);
+            color: var(--luxury-cream);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 13px; font-weight: 300;
+            padding: 10px 0; outline: none;
+            transition: border-color 0.35s ease;
+            -webkit-appearance: none; border-radius: 0;
+        }
+        .form-input:focus { border-bottom-color: var(--champagne-gold); }
+        .form-input::placeholder { color: var(--warm-light); opacity: 0.18; font-size: 12px; }
+        .form-input option { background: var(--dark-cocoa); color: var(--luxury-cream); }
+        select.form-input { cursor: pointer; }
+        textarea.form-input { resize: none; height: 72px; line-height: 1.9; }
+
+        .form-required { color: var(--amber-glow); margin-left: 2px; opacity: 0.7; }
+
+        .form-submit {
+            width: 100%; margin-top: 8px;
+            padding: 18px;
+            background: var(--champagne-gold);
+            color: var(--warm-black);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 10px; font-weight: 500;
+            letter-spacing: 4px; text-transform: uppercase;
+            border: none; cursor: pointer;
+            transition: all 0.4s ease;
+        }
+        .form-submit:hover:not(:disabled) { background: var(--cream-white); }
+        .form-submit:disabled { opacity: 0.45; cursor: not-allowed; }
+
+        .form-note {
+            font-size: 10px; color: var(--warm-light);
+            opacity: 0.28; margin-top: 20px;
+            text-align: center; line-height: 2; letter-spacing: 0.3px;
+        }
+
+        /* Success state */
+        .form-success {
+            display: none; text-align: center;
+            padding: 48px 0;
+        }
+        .success-icon {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 48px; color: var(--champagne-gold);
+            opacity: 0.6; margin-bottom: 24px; display: block;
+        }
+        .success-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 32px; font-weight: 300; color: var(--luxury-cream);
+            margin-bottom: 16px;
+        }
+        .success-text {
+            font-size: 13px; color: var(--warm-light);
+            opacity: 0.5; line-height: 2.4;
+        }
+        .success-note {
+            font-size: 10px; color: var(--champagne-gold);
+            opacity: 0.4; margin-top: 32px; letter-spacing: 1px;
+        }
+
+        /* Error message */
+        .form-error {
+            display: none; font-size: 11px;
+            color: #E8A87C; margin-top: 16px;
+            text-align: center; line-height: 1.8; opacity: 0.9;
+        }
+
+        @media (max-width: 640px) {
+            .modal-card { padding: 48px 28px; }
+            .form-row { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ========== NAVIGATION ========== -->
+<nav class="nav" id="mainNav">
+    <div class="nav-logo">Swirl Lamp</div>
+    <ul class="nav-links">
+        <li><a href="#philosophy">理念</a></li>
+        <li><a href="#modes">情境</a></li>
+        <li><a href="#matter">智慧</a></li>
+        <li><a href="#design">設計</a></li>
+        <li><a href="#scenarios">場景</a></li>
+    </ul>
+    <a href="#cta" class="nav-reserve">預約收藏</a>
+</nav>
+
+
+<!-- ========== HERO ========== -->
+<section id="hero">
+    <div class="hero-ambient"></div>
+
+    <div class="hero-content">
+        <p class="hero-eyebrow fade-up">Smart Ambient Lamp · 智慧藝術燈</p>
+        <h1 class="hero-title fade-up" style="transition-delay:.15s">
+            Swirl<br><em>Lamp</em>
+        </h1>
+        <p class="hero-subtitle fade-up" style="transition-delay:.28s">
+            深夜回家，<br>還有一盞專門為你而開的燈。
+        </p>
+        <p class="hero-desc fade-up" style="transition-delay:.42s">
+            它不是冰冷的智慧設備，<br>
+            而是一件懂得陪伴生活的<br>
+            智慧藝術燈。
+        </p>
+        <div class="hero-buttons fade-up" style="transition-delay:.56s">
+            <a href="#design" class="btn-primary">探索設計</a>
+            <a href="#cta" class="btn-outline">預約收藏</a>
+        </div>
+    </div>
+
+    <!-- Product Photo -->
+    <div class="hero-lamp-area fade-in" style="transition-delay:.4s">
+        <img src="product-hero.webp" alt="Swirl Lamp — 智慧藝術燈" class="hero-photo">
+        <div class="hero-photo-fade"></div>
+    </div>
+
+    <div class="scroll-cue">
+        <div class="scroll-cue-line"></div>
+        <span class="scroll-cue-text">Scroll</span>
+    </div>
+</section>
+
+
+<!-- ========== PHILOSOPHY ========== -->
+<section id="philosophy">
+    <div class="philosophy-inner">
+        <p class="section-label fade-up" style="justify-content:center">Philosophy · 品牌理念</p>
+        <h2 class="philosophy-title fade-up" style="transition-delay:.1s">
+            讓智慧燈，<br><em>不再只是功能。</em>
+        </h2>
+        <div class="philosophy-rule fade-in" style="transition-delay:.2s"></div>
+        <p class="philosophy-body fade-up" style="transition-delay:.2s">
+            Swirl Lamp 希望把藝術燈的美感，<br>
+            與智慧燈的情境互動真正融合。<br><br>
+            它不是單純照明。<br>
+            而是空間中的情緒核心，<br>
+            一件真正懂得陪伴生活的物件。
+        </p>
+
+        <div class="pillars stagger">
+            <div class="pillar">
+                <div class="pillar-num">01</div>
+                <div class="pillar-heading">藝術造型</div>
+                <p class="pillar-text">以漩渦曲線為靈感，每一盞燈都是可以靜靜存在於空間中的雕塑，即使不亮燈也有它的分量。</p>
+            </div>
+            <div class="pillar">
+                <div class="pillar-num">02</div>
+                <div class="pillar-heading">情境互動</div>
+                <p class="pillar-text">燈光懂得感受時間與情境。在你需要的時候，以你喜歡的方式，慢慢亮起，慢慢沉靜。</p>
+            </div>
+            <div class="pillar">
+                <div class="pillar-num">03</div>
+                <div class="pillar-heading">陪伴溫度</div>
+                <p class="pillar-text">不是一台設備，而是一個有溫度的存在。深夜回家時，它在那裡，為你而亮，像有人在等你。</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ========== LIGHTING MODES ========== -->
+<section id="modes">
+    <div class="modes-head">
+        <p class="section-label fade-up">Ambience · 情境燈光</p>
+        <h2 class="modes-title fade-up" style="transition-delay:.1s">
+            六種情境，<br>六種溫度的陪伴。
+        </h2>
+        <p class="modes-sub fade-up" style="transition-delay:.2s">燈光會根據情境慢慢切換，而不是突然改變。</p>
+    </div>
+
+    <div class="modes-grid stagger">
+
+        <!-- Homecoming -->
+        <div class="mode-card m-home">
+            <div class="mode-orb"></div>
+            <div class="mode-name">回家模式</div>
+            <div class="mode-en">Homecoming</div>
+            <p class="mode-desc">當你踏入家門，暖光慢慢亮起。就像有人在等你回家。</p>
+            <div class="mode-bar-wrap">
+                <div class="mode-bar"><div class="mode-bar-fill" style="width:80%"></div></div>
+                <span class="mode-kelvin">2700 K</span>
+            </div>
+        </div>
+
+        <!-- Relax -->
+        <div class="mode-card m-relax">
+            <div class="mode-orb"></div>
+            <div class="mode-name">放鬆模式</div>
+            <div class="mode-en">Unwind</div>
+            <p class="mode-desc">琥珀色低亮度，讓身體知道，現在可以放下了。</p>
+            <div class="mode-bar-wrap">
+                <div class="mode-bar"><div class="mode-bar-fill" style="width:52%"></div></div>
+                <span class="mode-kelvin">2400 K</span>
+            </div>
+        </div>
+
+        <!-- Read -->
+        <div class="mode-card m-read">
+            <div class="mode-orb"></div>
+            <div class="mode-name">閱讀模式</div>
+            <div class="mode-en">Focus</div>
+            <p class="mode-desc">暖白光均勻提亮，給文字最清晰的光，給眼睛最舒適的保護。</p>
+            <div class="mode-bar-wrap">
+                <div class="mode-bar"><div class="mode-bar-fill" style="width:92%"></div></div>
+                <span class="mode-kelvin">3000 K</span>
+            </div>
+        </div>
+
+        <!-- Sleep -->
+        <div class="mode-card m-sleep">
+            <div class="mode-orb"></div>
+            <div class="mode-name">睡前模式</div>
+            <div class="mode-en">Dusk</div>
+            <p class="mode-desc">燈光慢慢轉成柔和橘光，跟著你的呼吸，一起緩緩沉靜。</p>
+            <div class="mode-bar-wrap">
+                <div class="mode-bar"><div class="mode-bar-fill" style="width:38%"></div></div>
+                <span class="mode-kelvin">1800 K</span>
+            </div>
+        </div>
+
+        <!-- Night -->
+        <div class="mode-card m-night">
+            <div class="mode-orb"></div>
+            <div class="mode-name">夜燈模式</div>
+            <div class="mode-en">Nightwatch</div>
+            <p class="mode-desc">極低亮度的陪伴，在黑暗中留下一點溫柔的存在感。</p>
+            <div class="mode-bar-wrap">
+                <div class="mode-bar"><div class="mode-bar-fill" style="width:18%"></div></div>
+                <span class="mode-kelvin">1500 K</span>
+            </div>
+        </div>
+
+        <!-- Party -->
+        <div class="mode-card m-party">
+            <div class="mode-orb"></div>
+            <div class="mode-name">派對模式</div>
+            <div class="mode-en">Celebrate</div>
+            <p class="mode-desc">彩色氛圍光緩緩流動，讓空間充滿溫暖而不刺眼的歡樂感。</p>
+            <div class="mode-bar-wrap">
+                <div class="mode-bar">
+                    <div class="mode-bar-fill" style="width:75%;background:linear-gradient(to right,#C89A67,#F6DFC0,#EBC08B)"></div>
+                </div>
+                <span class="mode-kelvin">RGBW</span>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+
+<!-- ========== MATTER ========== -->
+<section id="matter">
+    <div class="matter-layout">
+
+        <div class="fade-up">
+            <p class="section-label">Smart Home · 智慧家居</p>
+            <h2 class="matter-heading">真正融入<br>你的智慧家庭。</h2>
+            <p class="matter-body">
+                Swirl Lamp 支援 Matter 協議，<br>
+                可以無縫整合進你已有的智慧家居系統。<br>
+                不需要額外橋接器，不需要繁瑣設定。<br>
+                開箱即用，立即融入你的生活。
+            </p>
+            <div class="matter-badges">
+                <span class="matter-badge">Apple Home</span>
+                <span class="matter-badge">Google Home</span>
+                <span class="matter-badge">Amazon Alexa</span>
+                <span class="matter-badge">Home Assistant</span>
+                <span class="matter-badge">Matter 1.2</span>
+            </div>
+            <ul class="matter-list">
+                <li>語音控制燈光</li>
+                <li>人體感測自動亮燈</li>
+                <li>回家自動歡迎燈光</li>
+                <li>情境自動化腳本</li>
+                <li>日落同步調光</li>
+                <li>睡眠排程漸暗</li>
+                <li>離家自動關燈</li>
+                <li>能耗監控紀錄</li>
+            </ul>
+        </div>
+
+        <div class="matter-visual fade-in" style="transition-delay:.3s">
+            <div class="m-ring m-ring-3"></div>
+            <div class="m-ring m-ring-1"></div>
+            <div class="m-ring m-ring-2"></div>
+            <div class="m-center">
+                <div class="m-center-text">Matter<br>Protocol</div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+
+<!-- ========== DESIGN / ART ========== -->
+<section id="design">
+    <div class="design-inner">
+        <p class="section-label fade-up" style="justify-content:center">Craftsmanship · 藝術造型</p>
+        <h2 class="design-title fade-up" style="transition-delay:.1s">
+            不只是一盞燈，<br>而是空間中的<em>雕塑。</em>
+        </h2>
+
+        <!-- Product photo showcase -->
+        <div class="design-showcase fade-in" style="transition-delay:.2s">
+            <div class="design-glow"></div>
+            <img src="product-hero.webp" alt="Swirl Lamp" class="design-product-photo">
+        </div>
+
+        <div class="design-feats stagger">
+            <div class="design-feat">
+                <svg class="design-feat-icon" viewBox="0 0 36 36" fill="none">
+                    <path d="M18 3 C26 3 31 9 31 17 C31 27 18 33 18 33 C18 33 5 27 5 17 C5 9 10 3 18 3Z"
+                          stroke="#D8B48A" stroke-width="1.5" fill="none"/>
+                    <path d="M18 7 C24 7 27 12 27 17 C27 24 18 29 18 29"
+                          stroke="#EBC08B" stroke-width="1" fill="none" opacity="0.45"/>
+                </svg>
+                <div class="design-feat-head">漩渦曲線</div>
+                <p class="design-feat-body">靈感來自自然中的渦旋形態。從剖面到輪廓，每個角度都是流動的美學，沒有一條多餘的線。</p>
+            </div>
+            <div class="design-feat">
+                <svg class="design-feat-icon" viewBox="0 0 36 36" fill="none">
+                    <circle cx="18" cy="18" r="6"  stroke="#D8B48A" stroke-width="1.5"/>
+                    <circle cx="18" cy="18" r="11" stroke="#EBC08B" stroke-width="1" opacity="0.4"/>
+                    <circle cx="18" cy="18" r="16" stroke="#C89A67" stroke-width="0.5" opacity="0.2"/>
+                </svg>
+                <div class="design-feat-head">流動光影</div>
+                <p class="design-feat-body">燈光從燈罩內部向外柔和漫射，讓光成為空間的主角，而非刺眼的點光源。</p>
+            </div>
+            <div class="design-feat">
+                <svg class="design-feat-icon" viewBox="0 0 36 36" fill="none">
+                    <rect x="7" y="23" width="22" height="4" rx="1.5" stroke="#D8B48A" stroke-width="1.5"/>
+                    <path d="M13 23 C13 13 18 7 18 7 C18 7 23 13 23 23"
+                          stroke="#EBC08B" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                </svg>
+                <div class="design-feat-head">桌面雕塑感</div>
+                <p class="design-feat-body">即使不開燈，放在空間中也是一件有分量的物件。燈本身就是藝術，不亮燈也值得被看見。</p>
+            </div>
+            <div class="design-feat">
+                <svg class="design-feat-icon" viewBox="0 0 36 36" fill="none">
+                    <path d="M6 30 Q12 6 18 18 Q24 30 30 6"
+                          stroke="#D8B48A" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                    <path d="M10 26 Q16 10 18 18 Q20 26 26 10"
+                          stroke="#EBC08B" stroke-width="1" fill="none" stroke-linecap="round" opacity="0.35"/>
+                </svg>
+                <div class="design-feat-head">北歐空間美學</div>
+                <p class="design-feat-body">以克制的材質與形體，追求一種安靜而有力量的存在感。融入不同空間，卻始終是焦點所在。</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ========== SCENARIOS ========== -->
+<section id="scenarios">
+    <div class="scenarios-head">
+        <p class="section-label fade-up" style="justify-content:center">Spaces · 使用場景</p>
+        <h2 class="scenarios-title fade-up" style="transition-delay:.1s">
+            每一個角落，<br>都值得一盞好燈。
+        </h2>
+    </div>
+
+    <div class="scenarios-grid stagger">
+
+        <div class="scene-card s-bedroom">
+            <div class="scene-bg" style="background-image:url('scene-bedroom.png')"></div>
+            <div class="scene-info">
+                <div class="scene-name">臥室床頭</div>
+                <div class="scene-en">Bedroom · Bedside</div>
+            </div>
+        </div>
+
+        <div class="scene-card s-living">
+            <div class="scene-bg" style="background-image:url('scene-living.png')"></div>
+            <div class="scene-info">
+                <div class="scene-name">客廳角落</div>
+                <div class="scene-en">Living Room · Corner</div>
+            </div>
+        </div>
+
+        <div class="scene-card s-desk">
+            <div class="scene-bg" style="background-image:url('scene-desk.png')"></div>
+            <div class="scene-info">
+                <div class="scene-name">書桌工作</div>
+                <div class="scene-en">Study · Desk</div>
+            </div>
+        </div>
+
+        <div class="scene-card s-cafe">
+            <div class="scene-bg" style="background-image:url('scene-cafe.png')"></div>
+            <div class="scene-info">
+                <div class="scene-name">咖啡廳氛圍</div>
+                <div class="scene-en">Café · Ambience</div>
+            </div>
+        </div>
+
+        <div class="scene-card s-hotel">
+            <div class="scene-bg" style="background-image:url('scene-hotel.png')"></div>
+            <div class="scene-info">
+                <div class="scene-name">飯店套房</div>
+                <div class="scene-en">Hotel · Suite</div>
+            </div>
+        </div>
+
+        <div class="scene-card s-store">
+            <div class="scene-bg" style="background-image:url('scene-store.png')"></div>
+            <div class="scene-info">
+                <div class="scene-name">選物陳列</div>
+                <div class="scene-en">Select Shop · Display</div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+
+<!-- ========== CTA ========== -->
+<section id="cta">
+    <div class="cta-glow"></div>
+    <p class="section-label fade-up" style="justify-content:center">Reserve · 預約收藏</p>
+    <h2 class="cta-title fade-up" style="transition-delay:.1s">
+        讓光，<br>替你留下<br><em>回家的溫度。</em>
+    </h2>
+    <p class="cta-desc fade-up" style="transition-delay:.22s">
+        Swirl Lamp 目前正在接受預約登記。<br>
+        加入早鳥名單，優先體驗這盞<br>
+        為你的深夜而存在的燈。
+    </p>
+    <div class="cta-btns fade-up" style="transition-delay:.34s">
+        <a href="#" class="btn-primary">預約收藏</a>
+        <a href="https://www.instagram.com/designjarvis/" target="_blank" rel="noopener" class="btn-outline">追蹤 Instagram</a>
+    </div>
+</section>
+
+
+<!-- ========== INSTAGRAM SECTION ========== -->
+<section id="instagram">
+    <div class="ig-inner fade-up">
+        <div class="ig-text-col">
+            <p class="section-label">Follow · 追蹤我們</p>
+            <h2 class="ig-title">
+                在 Instagram<br>看見更多光的故事。
+            </h2>
+            <p class="ig-desc">
+                燈光的情緒、空間的氛圍、設計的過程，<br>
+                都在這裡慢慢分享。
+            </p>
+            <a href="https://www.instagram.com/designjarvis/" target="_blank" rel="noopener" class="ig-handle-link">
+                <span class="ig-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+                        <circle cx="12" cy="12" r="4"/>
+                        <circle cx="17.5" cy="6.5" r="0.1" fill="currentColor" stroke-width="2.5"/>
+                    </svg>
+                </span>
+                <span class="ig-handle-text">@designjarvis</span>
+                <span class="ig-arrow">→</span>
+            </a>
+        </div>
+
+        <div class="ig-qr-col">
+            <!-- 把 QR 碼圖片存為 ig-qrcode.png 放進同一個資料夾即可顯示 -->
+            <div class="ig-qr-wrap">
+                <img src="designjarvis_qr.png" alt="掃描 QR Code 追蹤 @designjarvis"
+                     class="ig-qr-img"
+                     onerror="this.parentElement.classList.add('qr-missing')">
+                <div class="ig-qr-fallback">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" opacity="0.3">
+                        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+                        <circle cx="12" cy="12" r="4"/>
+                        <circle cx="17.5" cy="6.5" r="0.1" fill="currentColor" stroke-width="2.5"/>
+                    </svg>
+                    <p>將 ig-qrcode.png<br>放入資料夾即可顯示</p>
+                </div>
+            </div>
+            <p class="ig-qr-label">掃描 QR Code 追蹤</p>
+        </div>
+    </div>
+</section>
+
+
+<!-- ========== FOOTER ========== -->
+<footer>
+    <div class="footer-brand">Swirl Lamp</div>
+    <p class="footer-copy">© 2025 Swirl Lamp · All Rights Reserved</p>
+    <ul class="footer-links">
+        <li><a href="#">隱私政策</a></li>
+        <li><a href="https://www.instagram.com/designjarvis/" target="_blank" rel="noopener">Instagram</a></li>
+        <li><a href="https://www.instagram.com/designjarvis/" target="_blank" rel="noopener">@designjarvis</a></li>
+    </ul>
+</footer>
+
+
+<!-- ========== RESERVATION MODAL ========== -->
+<div class="modal-overlay" id="reserveModal" role="dialog" aria-modal="true" aria-label="預約收藏表單">
+    <div class="modal-card">
+        <button class="modal-close" id="modalClose" aria-label="關閉">✕</button>
+
+        <!-- Form section -->
+        <div id="formSection">
+            <p class="modal-eyebrow">Reserve · 預約收藏</p>
+            <h2 class="modal-title">加入早鳥名單</h2>
+            <p class="modal-desc">
+                填寫基本資料，我們會優先通知你<br>
+                上市消息與限定早鳥優惠。
+            </p>
+            <div class="modal-rule"></div>
+
+            <form id="reserveForm" novalidate>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="f-name">姓名 Name <span class="form-required">*</span></label>
+                        <input id="f-name" type="text" name="name" class="form-input" placeholder="王小明" required autocomplete="name">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="f-phone">電話 Phone</label>
+                        <input id="f-phone" type="tel" name="phone" class="form-input" placeholder="0912 345 678" autocomplete="tel">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="f-email">電子郵件 Email <span class="form-required">*</span></label>
+                    <input id="f-email" type="email" name="email" class="form-input" placeholder="yourname@email.com" required autocomplete="email">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="f-city">所在城市 City</label>
+                        <input id="f-city" type="text" name="city" class="form-input" placeholder="台北" autocomplete="address-level2">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="f-space">使用場景 Space</label>
+                        <select id="f-space" name="space" class="form-input">
+                            <option value="">請選擇 —</option>
+                            <option value="臥室">臥室</option>
+                            <option value="客廳">客廳</option>
+                            <option value="書桌 / 工作室">書桌 / 工作室</option>
+                            <option value="商業空間">商業空間</option>
+                            <option value="送禮">送禮</option>
+                            <option value="其他">其他</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="f-source">如何得知 How did you find us</label>
+                    <select id="f-source" name="source" class="form-input">
+                        <option value="">請選擇 —</option>
+                        <option value="Instagram">Instagram</option>
+                        <option value="朋友推薦">朋友推薦</option>
+                        <option value="搜尋引擎">搜尋引擎 (Google 等)</option>
+                        <option value="展覽 / 活動">展覽 / 活動</option>
+                        <option value="媒體報導">媒體報導</option>
+                        <option value="其他">其他</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="f-msg">留言 Message（選填）</label>
+                    <textarea id="f-msg" name="message" class="form-input" placeholder="對 Swirl Lamp 的期待，或想詢問的問題…"></textarea>
+                </div>
+
+                <div class="form-error" id="formError">送出失敗，請稍後再試，或直接寄信給我們。</div>
+                <button type="submit" class="form-submit" id="submitBtn">送出預約</button>
+                <p class="form-note">
+                    送出後將以 Email 確認您的登記。<br>
+                    資料僅供 Swirl Lamp 聯繫使用，絕不外流。
+                </p>
+            </form>
+        </div>
+
+        <!-- Success state -->
+        <div class="form-success" id="formSuccess">
+            <span class="success-icon">✦</span>
+            <h3 class="success-title">預約成功</h3>
+            <p class="success-text">
+                感謝你的登記，<br>
+                我們會盡快以 Email 與你聯繫。<br><br>
+                深夜回家時，它會為你而亮。
+            </p>
+            <p class="success-note">— Swirl Lamp —</p>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    /* ── Navigation scroll state ── */
+    const nav = document.getElementById('mainNav');
+    window.addEventListener('scroll', () => {
+        nav.classList.toggle('scrolled', window.scrollY > 60);
+    }, { passive: true });
+
+    /* ── IntersectionObserver for scroll animations ── */
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) entry.target.classList.add('visible');
+        });
+    }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
+
+    document.querySelectorAll('.fade-up, .fade-in, .stagger').forEach(el => observer.observe(el));
+
+    /* ── Trigger hero on load ── */
+    requestAnimationFrame(() => {
+        setTimeout(() => {
+            document.querySelectorAll('#hero .fade-up, #hero .fade-in').forEach(el => {
+                el.classList.add('visible');
+            });
+        }, 80);
+    });
+
+    /* ── Smooth scroll for anchor links ── */
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+        a.addEventListener('click', e => {
+            e.preventDefault();
+            const target = document.querySelector(a.getAttribute('href'));
+            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    });
+
+    /* ── Lamp parallax ── */
+    const lampArea = document.querySelector('.hero-lamp-area');
+    if (lampArea) {
+        window.addEventListener('scroll', () => {
+            const s = window.scrollY;
+            if (s < window.innerHeight) {
+                lampArea.style.transform = `translateY(${s * 0.14}px)`;
+            }
+        }, { passive: true });
+    }
+
+    /* ── Dynamic particle spawner ── */
+    function spawnParticle() {
+        const wrap = document.querySelector('.lamp-wrap');
+        if (!wrap) return;
+        const p = document.createElement('div');
+        p.className = 'particle';
+        const sz = Math.random() * 3 + 1.5;
+        p.style.cssText = `
+            width:${sz}px; height:${sz}px;
+            left:${38 + Math.random() * 24}%;
+            top:${33 + Math.random() * 18}%;
+            animation-delay:0s;
+            animation-duration:${4.5 + Math.random() * 3}s;
+        `;
+        wrap.appendChild(p);
+        setTimeout(() => p.remove(), 8000);
+    }
+    setInterval(spawnParticle, 900);
+
+    /* ── Mode card mouse-track glow ── */
+    document.querySelectorAll('.mode-card').forEach(card => {
+        card.addEventListener('mousemove', e => {
+            const r = card.getBoundingClientRect();
+            card.querySelector('.mode-orb').style.transform =
+                `translate(${(e.clientX - r.left - r.width/2) * 0.02}px,` +
+                `${(e.clientY - r.top - r.height/2) * 0.02}px) scale(1.1)`;
+        });
+        card.addEventListener('mouseleave', () => {
+            card.querySelector('.mode-orb').style.transform = '';
+        });
+    });
+
+    /* ================================================ */
+    /*  RESERVATION MODAL                               */
+    /* ================================================ */
+
+    // ── EmailJS config (填入你的帳號資料) ──────────────
+    const EJS_PUBLIC_KEY  = 'YOUR_EMAILJS_PUBLIC_KEY';   // emailjs.com → Account → Public Key
+    const EJS_SERVICE_ID  = 'YOUR_SERVICE_ID';            // emailjs.com → Email Services
+    const EJS_TEMPLATE_ID = 'YOUR_TEMPLATE_ID';           // emailjs.com → Email Templates
+    // ─────────────────────────────────────────────────────────────────────────
+
+    // 初始化 EmailJS（有設定才初始化）
+    if (EJS_PUBLIC_KEY !== 'YOUR_EMAILJS_PUBLIC_KEY') {
+        emailjs.init({ publicKey: EJS_PUBLIC_KEY });
+    }
+
+    // 開 / 關 Modal
+    function openModal() {
+        document.getElementById('reserveModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeModal() {
+        document.getElementById('reserveModal').classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    document.getElementById('modalClose').addEventListener('click', closeModal);
+    document.getElementById('reserveModal').addEventListener('click', e => {
+        if (e.target === e.currentTarget) closeModal();
+    });
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') closeModal();
+    });
+
+    // 把所有「預約收藏」按鈕接到 Modal
+    document.querySelectorAll('.nav-reserve, [href="#cta"]').forEach(btn => {
+        btn.addEventListener('click', e => { e.preventDefault(); openModal(); });
+    });
+    document.querySelectorAll('#cta .btn-primary, #cta .btn-outline').forEach(btn => {
+        if (btn.textContent.includes('預約')) {
+            btn.addEventListener('click', e => { e.preventDefault(); openModal(); });
+        }
+    });
+    document.querySelectorAll('#hero .btn-outline').forEach(btn => {
+        if (btn.textContent.includes('預約')) {
+            btn.addEventListener('click', e => { e.preventDefault(); openModal(); });
+        }
+    });
+
+    /* ── Form Submission ── */
+    document.getElementById('reserveForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const btn   = document.getElementById('submitBtn');
+        const originalText = btn.textContent;
+        const errEl = document.getElementById('formError');
+        btn.disabled = true;
+        btn.textContent = '送出中…';
+        errEl.style.display = 'none';
+
+        try {
+
+        const data = {
+            name:    this.name.value.trim(),
+            phone:   this.phone.value.trim(),
+            email:   this.email.value.trim(),
+            city:    this.city.value.trim(),
+            space:   this.space.value,
+            source:  this.source.value,
+            message: this.message.value.trim() || '（無留言）',
+            time:    new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' })
+        };
+
+        try {
+            const saved = JSON.parse(localStorage.getItem('swirl_reservations') || '[]');
+            saved.push(data);
+            localStorage.setItem('swirl_reservations', JSON.stringify(saved));
+        } catch(err) { console.warn('localStorage failed:', err); }
+
+        if (EJS_PUBLIC_KEY !== 'YOUR_EMAILJS_PUBLIC_KEY' && typeof emailjs !== 'undefined') {
+            try {
+                await emailjs.send(EJS_SERVICE_ID, EJS_TEMPLATE_ID, {
+                    to_name:     'Haku',
+                    from_name:   data.name,
+                    from_email:  data.email,
+                    phone:       data.phone  || '未填',
+                    city:        data.city   || '未填',
+                    space:       data.space  || '未填',
+                    source:      data.source || '未填',
+                    message:     data.message,
+                    submit_time: data.time
+                });
+            } catch(err) {
+                console.warn('EmailJS error:', err);
+            }
+        }
+
+        document.getElementById('formSection').style.display = 'none';
+        document.getElementById('successSection').style.display = 'block';
+
+        // Scroll to top of modal content
+        document.querySelector('.modal-body').scrollTop = 0;
+
+    } catch(globalErr) {
+        console.error('Form error:', globalErr);
+        btn.textContent = originalText;
+        btn.disabled = false;
+        alert('發生錯誤，請稍後再試。');
+    }
+});
+</script>
+</body>
+</html>

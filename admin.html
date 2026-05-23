@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swirl Lamp — 預約管理後台</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --warm-black:     #140D0A;
+            --dark-cocoa:     #3A241B;
+            --espresso:       #2B1A14;
+            --champagne-gold: #D8B48A;
+            --warm-light:     #F6DFC0;
+            --luxury-cream:   #F3E6D6;
+            --amber-glow:     #EBC08B;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            background: var(--warm-black);
+            color: var(--warm-light);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-size: 14px; line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            padding: 32px 48px 24px;
+            border-bottom: 1px solid rgba(216,180,138,0.12);
+            display: flex; align-items: center; justify-content: space-between;
+            flex-wrap: wrap; gap: 20px;
+        }
+        .header-brand {
+            font-family: Georgia, serif;
+            font-size: 22px; font-weight: 400;
+            letter-spacing: 5px; text-transform: uppercase;
+            color: var(--champagne-gold);
+        }
+        .header-sub {
+            font-size: 11px; color: var(--warm-light); opacity: 0.4;
+            letter-spacing: 2px; margin-top: 4px;
+        }
+        .header-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 28px;
+            font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
+            border: none; cursor: pointer; font-family: inherit;
+            transition: all 0.3s;
+        }
+        .btn-gold {
+            background: var(--champagne-gold); color: var(--warm-black);
+        }
+        .btn-gold:hover { background: var(--luxury-cream); }
+        .btn-ghost {
+            background: transparent; color: var(--warm-light);
+            border: 1px solid rgba(246,223,192,0.2);
+        }
+        .btn-ghost:hover { border-color: var(--champagne-gold); color: var(--champagne-gold); }
+        .btn-danger {
+            background: transparent; color: #E8907C;
+            border: 1px solid rgba(232,144,124,0.25);
+            font-size: 10px;
+        }
+        .btn-danger:hover { background: rgba(232,144,124,0.1); }
+
+        /* Stats bar */
+        .stats-bar {
+            padding: 20px 48px;
+            display: flex; gap: 40px; flex-wrap: wrap;
+            border-bottom: 1px solid rgba(216,180,138,0.08);
+        }
+        .stat { }
+        .stat-num {
+            font-family: Georgia, serif;
+            font-size: 32px; font-weight: 400;
+            color: var(--champagne-gold); line-height: 1;
+        }
+        .stat-label {
+            font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+            color: var(--warm-light); opacity: 0.4; margin-top: 4px;
+        }
+
+        /* Main content */
+        .main { padding: 32px 48px; }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center; padding: 100px 40px;
+        }
+        .empty-icon {
+            font-size: 48px; opacity: 0.2; margin-bottom: 20px;
+        }
+        .empty-title {
+            font-family: Georgia, serif;
+            font-size: 22px; font-weight: 400;
+            color: var(--luxury-cream); margin-bottom: 12px;
+        }
+        .empty-text { font-size: 12px; opacity: 0.4; line-height: 2; }
+        .empty-link {
+            display: inline-block; margin-top: 28px; padding: 12px 32px;
+            border: 1px solid rgba(216,180,138,0.3); color: var(--champagne-gold);
+            font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
+            text-decoration: none; transition: all 0.3s;
+        }
+        .empty-link:hover { background: rgba(216,180,138,0.1); }
+
+        /* Table */
+        .table-wrap { overflow-x: auto; }
+        table {
+            width: 100%; border-collapse: collapse;
+            font-size: 13px; min-width: 900px;
+        }
+        thead tr {
+            border-bottom: 1px solid rgba(216,180,138,0.2);
+        }
+        th {
+            padding: 14px 16px; text-align: left;
+            font-size: 9px; letter-spacing: 3px; text-transform: uppercase;
+            color: var(--champagne-gold); opacity: 0.65; font-weight: 400;
+        }
+        tbody tr {
+            border-bottom: 1px solid rgba(246,223,192,0.06);
+            transition: background 0.2s;
+        }
+        tbody tr:hover { background: rgba(58,36,27,0.4); }
+        td {
+            padding: 16px; color: var(--warm-light); opacity: 0.8;
+            vertical-align: middle;
+        }
+        td.td-name {
+            color: var(--luxury-cream); opacity: 1;
+            font-weight: 400;
+        }
+        td.td-email { color: var(--amber-glow); opacity: 0.8; }
+        .space-badge {
+            display: inline-block; padding: 3px 12px;
+            border: 1px solid rgba(216,180,138,0.2);
+            font-size: 10px; color: var(--champagne-gold);
+            opacity: 0.7; letter-spacing: 1px;
+        }
+        td.td-time { font-size: 11px; opacity: 0.38; }
+        td.td-msg {
+            max-width: 200px; font-size: 11px; opacity: 0.5;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+
+        /* Row number */
+        td.td-num {
+            font-size: 12px; color: var(--champagne-gold);
+            opacity: 0.35; width: 48px; text-align: center;
+        }
+
+        /* Footer */
+        .admin-footer {
+            padding: 28px 48px;
+            border-top: 1px solid rgba(216,180,138,0.08);
+            font-size: 10px; color: var(--warm-light); opacity: 0.25;
+            letter-spacing: 2px; text-align: center;
+        }
+
+        @media (max-width: 700px) {
+            .header, .stats-bar, .main, .admin-footer {
+                padding-left: 20px; padding-right: 20px;
+            }
+            .header { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div>
+        <div class="header-brand">Swirl Lamp</div>
+        <div class="header-sub">預約管理後台 · Reservations Admin</div>
+    </div>
+    <div class="header-actions">
+        <button class="btn btn-gold" id="exportBtn" onclick="exportExcel()">匯出 Excel</button>
+        <button class="btn btn-ghost" onclick="refreshData()">重新整理</button>
+        <a href="index.html" class="btn btn-ghost" style="text-decoration:none;display:inline-block;padding:10px 28px">回到網站</a>
+        <button class="btn btn-danger" onclick="clearData()">清除資料</button>
+    </div>
+</div>
+
+<div class="stats-bar" id="statsBar">
+    <div class="stat">
+        <div class="stat-num" id="statTotal">0</div>
+        <div class="stat-label">總預約數</div>
+    </div>
+    <div class="stat">
+        <div class="stat-num" id="statToday">0</div>
+        <div class="stat-label">今日新增</div>
+    </div>
+    <div class="stat">
+        <div class="stat-num" id="statSpace">—</div>
+        <div class="stat-label">最多場景</div>
+    </div>
+</div>
+
+<div class="main" id="mainContent">
+    <!-- Populated by JS -->
+</div>
+
+<div class="admin-footer">
+    © Swirl Lamp · 資料儲存於此裝置的 localStorage · 僅供本機管理使用
+</div>
+
+<script>
+    const STORAGE_KEY = 'swirl_reservations';
+
+    function loadData() {
+        try {
+            return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        } catch(e) { return []; }
+    }
+
+    function renderStats(data) {
+        document.getElementById('statTotal').textContent = data.length;
+
+        const today = new Date().toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei' });
+        const todayCount = data.filter(r => r.time && r.time.startsWith(today.replace(/\//g, '/'))).length;
+        // Fallback: count by date substring
+        const todayStr = new Date().toLocaleDateString('zh-TW');
+        const todayCount2 = data.filter(r => r.time && r.time.includes(todayStr.split('/').join('/'))).length;
+        document.getElementById('statToday').textContent = Math.max(todayCount, todayCount2) || 0;
+
+        // Most common space
+        if (data.length > 0) {
+            const spaceCounts = {};
+            data.forEach(r => {
+                if (r.space) spaceCounts[r.space] = (spaceCounts[r.space] || 0) + 1;
+            });
+            const topSpace = Object.entries(spaceCounts).sort((a,b) => b[1]-a[1])[0];
+            document.getElementById('statSpace').textContent = topSpace ? topSpace[0] : '—';
+        }
+    }
+
+    function renderTable(data) {
+        const main = document.getElementById('mainContent');
+
+        if (data.length === 0) {
+            main.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">✦</div>
+                    <h2 class="empty-title">尚無預約記錄</h2>
+                    <p class="empty-text">
+                        當有訪客透過此裝置填寫預約表單，<br>
+                        記錄將會出現在這裡。
+                    </p>
+                    <a href="index.html" class="empty-link">前往預約頁面</a>
+                </div>`;
+            return;
+        }
+
+        // Sort newest first
+        const sorted = [...data].reverse();
+
+        main.innerHTML = `
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>姓名</th>
+                        <th>Email</th>
+                        <th>電話</th>
+                        <th>城市</th>
+                        <th>使用場景</th>
+                        <th>來源</th>
+                        <th>留言</th>
+                        <th>登記時間</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>`;
+
+        const tbody = document.getElementById('tableBody');
+        sorted.forEach((r, i) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="td-num">${data.length - i}</td>
+                <td class="td-name">${esc(r.name)}</td>
+                <td class="td-email">${esc(r.email)}</td>
+                <td>${esc(r.phone) || '<span style="opacity:.3">—</span>'}</td>
+                <td>${esc(r.city)  || '<span style="opacity:.3">—</span>'}</td>
+                <td>${r.space ? `<span class="space-badge">${esc(r.space)}</span>` : '<span style="opacity:.3">—</span>'}</td>
+                <td>${esc(r.source) || '<span style="opacity:.3">—</span>'}</td>
+                <td class="td-msg" title="${esc(r.message)}">${esc(r.message) || '<span style="opacity:.3">—</span>'}</td>
+                <td class="td-time">${esc(r.time)}</td>`;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function esc(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g,'&amp;')
+            .replace(/</g,'&lt;')
+            .replace(/>/g,'&gt;')
+            .replace(/"/g,'&quot;');
+    }
+
+    function refreshData() {
+        const data = loadData();
+        renderStats(data);
+        renderTable(data);
+    }
+
+    function exportExcel() {
+        const data = loadData();
+        if (data.length === 0) {
+            alert('目前沒有預約資料可以匯出。');
+            return;
+        }
+
+        // Build Excel-friendly data
+        const rows = data.map((r, i) => ({
+            '編號':     i + 1,
+            '姓名':     r.name     || '',
+            '電子郵件': r.email    || '',
+            '電話':     r.phone    || '',
+            '所在城市': r.city     || '',
+            '使用場景': r.space    || '',
+            '得知來源': r.source   || '',
+            '留言':     r.message  === '（無留言）' ? '' : (r.message || ''),
+            '登記時間': r.time     || ''
+        }));
+
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(rows);
+
+        // Column widths
+        ws['!cols'] = [
+            { wch: 6  },  // 編號
+            { wch: 14 },  // 姓名
+            { wch: 28 },  // Email
+            { wch: 16 },  // 電話
+            { wch: 12 },  // 城市
+            { wch: 14 },  // 場景
+            { wch: 14 },  // 來源
+            { wch: 40 },  // 留言
+            { wch: 22 }   // 時間
+        ];
+
+        XLSX.utils.book_append_sheet(wb, ws, '預約名單');
+
+        // File name with date
+        const dateStr = new Date().toLocaleDateString('zh-TW').replace(/\//g, '-');
+        XLSX.writeFile(wb, `Swirl-Lamp-預約名單-${dateStr}.xlsx`);
+    }
+
+    function clearData() {
+        const data = loadData();
+        if (data.length === 0) { alert('目前沒有資料。'); return; }
+        if (!confirm(`確定要清除全部 ${data.length} 筆預約記錄嗎？\n此動作無法復原。`)) return;
+        localStorage.removeItem(STORAGE_KEY);
+        refreshData();
+    }
+
+    // Init
+    refreshData();
+
+    // Auto refresh every 30s (if page stays open)
+    setInterval(refreshData, 30000);
+</script>
+</body>
+</html>
